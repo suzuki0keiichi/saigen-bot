@@ -31,17 +31,16 @@ async function start() {
         if (range) {
             console.log(range);
             app.client.conversations.history({
-                channel: context.command.channel_id,
+                channel: range[0],
                 oldest: range[1].toString(),
                 latest: range[2].toString(),
                 inclusive: true,
-                includeAllMetadata: true,
             }).then((res) => {
                 if (res.messages) {
                     for (let i = 0; i < res.messages.length; i++) {
                         if (res.messages[i].ts) {
                             console.log(
-                                res.messages[i].username + " : " +
+                                res.messages[i].user + " : " +
                                 (new Date(Number(res.messages[i].ts) * 1000)).toLocaleString("ja-JP") + " " +
                                 res.messages[i].text);
                         }
