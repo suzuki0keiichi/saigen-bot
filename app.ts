@@ -32,8 +32,10 @@ async function start() {
             console.log(range);
             app.client.conversations.history({
                 channel: context.command.channel_id,
-                oldest: range[0].toString(),
-                latest: range[1].toString(),
+                oldest: range[1].toString(),
+                latest: range[2].toString(),
+                inclusive: true,
+                includeAllMetadata: true,
             }).then((res) => {
                 if (res.messages) {
                     for (let i = 0; i < res.messages.length; i++) {
