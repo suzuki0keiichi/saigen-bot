@@ -44,7 +44,7 @@ async function start() {
     });
 };
 
-// start();
+start();
 
 /**
  * 桁を合わせる
@@ -177,4 +177,4 @@ function parseCommand(text: string): [string, number, number] | undefined {
 
 // Date.parse("");
 // 20220419T140001+0900
-console.log(Date.parse("2022-05-05T10:00:00+09:00"));
+// console.log(Date.parse("2022-05-05T10:00:00+09:00"));
