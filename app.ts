@@ -40,3 +40,99 @@ async function start() {
 };
 
 start();
+
+let hourPattern = /^\d{1,2}$/;
+let hourMinutePattern = /^(\d{1,2}):(\d{2})$/;
+let dayPattern = /^\d{1,2}$/;
+let monthDayPattern = /^(\d{1,2})\/(\d{1,2})$/;
+let yearMonthDayPattern = /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/;
+
+function parse(text: string): string | undefined {
+    let now = new Date();
+
+    console.log(text);
+
+    let texts = text.split(/ +/);
+    switch (texts.length) {
+        case 1:
+            return "" + parseDay(now, "") + "T" +
+                parseHour(now, texts[0]) + "+0900";
+
+        case 2:
+            return "" + parseDay(now, texts[0]) + "T" +
+                parseHour(now, texts[1]) + "+0900";
+
+        case 0:
+        default:
+            console.log("okashii");
+            return undefined;
+    }
+}
+
+function parseHour(now: Date, text: string): string | undefined {
+    let found = hourPattern.exec(text);
+    if (found) {
+        return align2(found[0]) + "0000";
+    }
+
+    found = hourMinutePattern.exec(text);
+    if (found) {
+        return align2(found[1]) + align2(found[2]) + "00";
+    }
+
+    return align2(now.getHours()) + align2(now.getMinutes()) + "00";
+}
+
+function parseDay(now: Date, text: string): string | undefined {
+    let found = dayPattern.exec(text)
+    if (found) {
+        return "" + now.getFullYear() + align2(now.getMonth() + 1) + align2(found[0]);
+    }
+
+    found = monthDayPattern.exec(text);
+    if (found) {
+        return "" + now.getFullYear() + align2(found[1]) + align2(found[2]);
+    }
+
+    found = yearMonthDayPattern.exec(text);
+    if (found) {
+        return align2(found[1]) + align2(found[2]) + align2(found[3]);
+    } else {
+        return "" + now.getFullYear() + align2(now.getMonth() + 1) + align2(now.getDate());
+    }
+}
+
+/**
+ * 桁を合わせる
+ * 小さいのを大きくする事しかしません
+ * 既存の関数で無いのか調べてません
+ * めんどいので2桁しか対応しませんし、""には対応しません
+ */
+function align2(num: number | string): string {
+    if (typeof num === "number") {
+        if (num < 10) {
+            return "0" + num;
+        }
+
+        return "" + num;
+    } else {
+        if (num.length < 2) {
+            return "0" + num;
+        }
+
+        return num;
+    }
+}
+
+// console.log(parse("10"));
+// console.log(parse("10:30"));
+// console.log(parse("1:10"));
+// console.log(parse("24 01:10"));
+// console.log(parse("4 01:10"));
+// console.log(parse("3/4 01:10"));
+// console.log(parse("12/4 01:10"));
+// console.log(parse("2020/3/4 01:10"));
+// console.log(parse("1999/4/30 01:10"));
+
+// Date.parse("");
+// 20220419T140001+0900
