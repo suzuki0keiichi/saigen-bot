@@ -35,7 +35,16 @@ async function start() {
                 oldest: range[0].toString(),
                 latest: range[1].toString(),
             }).then((res) => {
-                console.log(res.messages);
+                if (res.messages) {
+                    for (let i = 0; i < res.messages.length; i++) {
+                        if (res.messages[i].ts) {
+                            console.log(
+                                res.messages[i].username + " : " +
+                                (new Date(Number(res.messages[i].ts) * 1000)).toLocaleString("ja-JP") + " " +
+                                res.messages[i].text);
+                        }
+                    }
+                }
             }).catch((error) => {
                 console.log("error");
                 console.log(error);
@@ -43,8 +52,6 @@ async function start() {
         }
     });
 };
-
-start();
 
 /**
  * 桁を合わせる
@@ -142,26 +149,26 @@ function parseCommand(text: string): [string, number, number] | undefined {
         case 2: // 1個しかない場合は指定時刻～現在
             return [
                 texts[0],
-                Date.parse("" + parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900"),
-                Date.now()];
+                Date.parse("" + parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
+                Date.now() / 1000];
 
         case 3: // 2個の場合は当日の指定時刻1～指定時刻2
             return [
                 texts[0],
-                Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900"),
-                Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[2]) + "+0900")];
+                Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
+                Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[2]) + "+0900") / 1000];
 
         case 4: // 3個の場合は指定日の指定時刻1～指定時刻2
             return [
                 texts[0],
-                Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[2]) + "+0900"),
-                Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[3]) + "+0900")];
+                Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[2]) + "+0900") / 1000,
+                Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[3]) + "+0900") / 1000];
 
         case 5: // 4個の場合は指定日1の指定時刻1～指定日2の指定時刻2
             return [
                 texts[0],
-                Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[2]) + "+0900"),
-                Date.parse(parseDay(now, texts[3]) + "T" + parseHour(now, texts[4]) + "+0900")];
+                Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[2]) + "+0900") / 1000,
+                Date.parse(parseDay(now, texts[3]) + "T" + parseHour(now, texts[4]) + "+0900") / 1000];
     }
 }
 
@@ -178,3 +185,7 @@ function parseCommand(text: string): [string, number, number] | undefined {
 // Date.parse("");
 // 20220419T140001+0900
 // console.log(Date.parse("2022-05-05T10:00:00+09:00"));
+// console.log((new Date(1651649258.866469 * 1000).toLocaleString("ja-JP")));
+// console.log(Date.now());
+
+start();
