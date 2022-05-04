@@ -29,7 +29,6 @@ async function start() {
 
         let range = parseCommand(context.command.text);
         if (range) {
-            console.log(range);
             app.client.conversations.history({
                 channel: range[0],
                 oldest: range[1].toString(),
