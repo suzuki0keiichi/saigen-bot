@@ -44,7 +44,7 @@ async function start() {
     });
 };
 
-start();
+// start();
 
 /**
  * 桁を合わせる
@@ -74,15 +74,15 @@ let hourMinutePattern = /^(\d{1,2}):(\d{2})$/;
 function parseHour(now: Date, text: string): string | undefined {
     let found = hourPattern.exec(text);
     if (found) {
-        return align2(found[0]) + "0000";
+        return align2(found[0]) + ":00:00";
     }
 
     found = hourMinutePattern.exec(text);
     if (found) {
-        return align2(found[1]) + align2(found[2]) + "00";
+        return align2(found[1]) + ":" + align2(found[2]) + ":00";
     }
 
-    return align2(now.getHours()) + align2(now.getMinutes()) + "00";
+    return align2(now.getHours()) + ":" + align2(now.getMinutes()) + ":00";
 }
 
 let dayPattern = /^\d{1,2}$/;
@@ -92,19 +92,19 @@ let yearMonthDayPattern = /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/;
 function parseDay(now: Date, text: string): string | undefined {
     let found = dayPattern.exec(text)
     if (found) {
-        return "" + now.getFullYear() + align2(now.getMonth() + 1) + align2(found[0]);
+        return "" + now.getFullYear() + "-" + align2(now.getMonth() + 1) + "-" + align2(found[0]);
     }
 
     found = monthDayPattern.exec(text);
     if (found) {
-        return "" + now.getFullYear() + align2(found[1]) + align2(found[2]);
+        return "" + now.getFullYear() + "-" + align2(found[1]) + "-" + align2(found[2]);
     }
 
     found = yearMonthDayPattern.exec(text);
     if (found) {
-        return align2(found[1]) + align2(found[2]) + align2(found[3]);
+        return align2(found[1]) + "-" + align2(found[2]) + "-" + align2(found[3]);
     } else {
-        return "" + now.getFullYear() + align2(now.getMonth() + 1) + align2(now.getDate());
+        return "" + now.getFullYear() + "-" + align2(now.getMonth() + 1) + "-" + align2(now.getDate());
     }
 }
 
@@ -117,11 +117,11 @@ function parse(text: string): string | undefined {
     switch (texts.length) {
         case 1:
             return "" + parseDay(now, "") + "T" +
-                parseHour(now, texts[0]) + "+0900";
+                parseHour(now, texts[0]) + "+09:00";
 
         case 2:
             return "" + parseDay(now, texts[0]) + "T" +
-                parseHour(now, texts[1]) + "+0900";
+                parseHour(now, texts[1]) + "+09:00";
 
         case 0:
         default:
@@ -130,31 +130,36 @@ function parse(text: string): string | undefined {
     }
 }
 
-function parseCommand(text: string): number[] | undefined {
+function parseCommand(text: string): [string, number, number] | undefined {
     let texts = text.split(/ +/);
     if (texts.length < 2) {
         return;
     }
 
     let now = new Date();
-    let channelId = texts[0];
 
     switch (texts.length) {
         case 2: // 1個しかない場合は指定時刻～現在
-            return [Date.parse("" + parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900"), Date.now()];
+            return [
+                texts[0],
+                Date.parse("" + parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900"),
+                Date.now()];
 
         case 3: // 2個の場合は当日の指定時刻1～指定時刻2
             return [
+                texts[0],
                 Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900"),
                 Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[2]) + "+0900")];
 
         case 4: // 3個の場合は指定日の指定時刻1～指定時刻2
             return [
+                texts[0],
                 Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[2]) + "+0900"),
                 Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[3]) + "+0900")];
 
         case 5: // 4個の場合は指定日1の指定時刻1～指定日2の指定時刻2
             return [
+                texts[0],
                 Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[2]) + "+0900"),
                 Date.parse(parseDay(now, texts[3]) + "T" + parseHour(now, texts[4]) + "+0900")];
     }
@@ -172,3 +177,4 @@ function parseCommand(text: string): number[] | undefined {
 
 // Date.parse("");
 // 20220419T140001+0900
+console.log(Date.parse("2022-05-05T10:00:00+09:00"));
