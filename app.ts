@@ -40,11 +40,13 @@ async function start() {
                 inclusive: true,
             }).then((res) => {
                 if (res.messages) {
-                    saigen(
-                        Date.now() - toJsTs(res.messages[res.messages.length - 1]),
-                        context.command.channel_id,
+                    let firstTs = toJsTs(res.messages[res.messages.length - 1]);
+                    saigen({
+                        requestTs: Date.now(),
+                        channelId: context.command.channel_id,
                         rate,
-                        res.messages);
+                        firstTs,
+                    }, res.messages);
                 }
             }).catch((error) => {
                 console.log("error");
@@ -58,26 +60,36 @@ function toJsTs(message: Message): number {
     return Number(message.ts) * 1000;
 }
 
+interface SaigenContext {
+    firstTs: number,
+    requestTs: number,
+    channelId: string,
+    rate: number,
+}
+
 /***
  * @param diffTs 最初の発言と現在のタイムスタンプの差 ミリ秒
  */
-function saigen(diffTs: number, channelId: string, rate: number, messages: Message[]) {
+function saigen(context: SaigenContext, messages: Message[]) {
     let msg = messages.pop();
     if (msg == undefined) {
         return;
     }
 
-    setTimeout((diffTs: number, channelId: string, message: Message, remainingMessages: Message[]) => {
+    let messageTs = toJsTs(msg);
+    let diffTs = Math.max(0, (messageTs - context.firstTs) / context.rate);
+
+    setTimeout((context: SaigenContext, message: Message, remainingMessages: Message[]) => {
         app.client.chat.postMessage({
-            channel: channelId,
+            channel: context.channelId,
             text: message.text,
             username: message.user
         });
 
-        saigen(diffTs, channelId, rate, remainingMessages);
+        saigen(context, remainingMessages);
     },
-        Math.max(0, (toJsTs(msg) + diffTs - Date.now()) / rate),
-        diffTs, channelId, msg, messages);
+        Math.max(0, context.requestTs + diffTs),
+        context, msg, messages);
 };
 
 start();
