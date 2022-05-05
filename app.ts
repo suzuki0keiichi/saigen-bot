@@ -29,18 +29,22 @@ async function start() {
 
         await context.ack();
 
-        let range = parseCommand(context.command.text);
-        if (range) {
-            let channelId = range[0];
+        let command = parseCommand(context.command.text);
+        if (command) {
+            let rate = command.rate;
 
             app.client.conversations.history({
-                channel: channelId,
-                oldest: range[1].toString(),
-                latest: range[2].toString(),
+                channel: command.channelId,
+                oldest: command.oldest.toString(),
+                latest: command.latest.toString(),
                 inclusive: true,
             }).then((res) => {
                 if (res.messages) {
-                    saigen(Date.now() - toJsTs(res.messages[res.messages.length - 1]), context.command.channel_id, res.messages);
+                    saigen(
+                        Date.now() - toJsTs(res.messages[res.messages.length - 1]),
+                        context.command.channel_id,
+                        rate,
+                        res.messages);
                 }
             }).catch((error) => {
                 console.log("error");
@@ -57,7 +61,7 @@ function toJsTs(message: Message): number {
 /***
  * @param diffTs 最初の発言と現在のタイムスタンプの差 ミリ秒
  */
-function saigen(diffTs: number, channelId: string, messages: Message[]) {
+function saigen(diffTs: number, channelId: string, rate: number, messages: Message[]) {
     let msg = messages.pop();
     if (msg == undefined) {
         return;
@@ -70,9 +74,9 @@ function saigen(diffTs: number, channelId: string, messages: Message[]) {
             username: message.user
         });
 
-        saigen(diffTs, channelId, remainingMessages);
+        saigen(diffTs, channelId, rate, remainingMessages);
     },
-        Math.max(0, toJsTs(msg) + diffTs - Date.now()),
+        Math.max(0, toJsTs(msg) + diffTs - Date.now() / rate),
         diffTs, channelId, msg, messages);
 };
 

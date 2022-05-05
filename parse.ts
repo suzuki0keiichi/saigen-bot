@@ -1,3 +1,10 @@
+interface SaigenCommand {
+    channelId: string,
+    oldest: number,
+    latest: number,
+    rate: number,
+}
+
 /**
  * 桁を合わせる
  * 小さいのを大きくする事しかしません
@@ -60,53 +67,58 @@ export function parseDay(now: Date, text: string): string | undefined {
     }
 }
 
-export function parseCommand(text: string): [string, number, number] | undefined {
+export function parseCommand(text: string): SaigenCommand | undefined {
     let texts = text.split(/ +/);
-    if (texts.length < 2) {
+
+    let now = new Date();
+    let channelId = texts.shift();
+    let rate: number = 1.0;
+
+    if (channelId == undefined) {
         return;
     }
 
-    let now = new Date();
+    if (texts.length > 0 && texts[texts.length - 1].match(/\d+\.?\d*x$/)) {
+        rate = Number(texts.pop()?.slice(0, -1));
+    }
 
     switch (texts.length) {
-        case 2: // 1個しかない場合は指定時刻～現在
-            return [
-                texts[0],
-                Date.parse("" + parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
-                Date.now() / 1000];
+        case 1: // 1個しかない場合は指定時刻～現在
+            return {
+                channelId,
+                oldest: Date.parse("" + parseDay(now, "") + "T" + parseHour(now, texts[0]) + "+0900") / 1000,
+                latest: Date.now() / 1000,
+                rate,
+            };
 
-        case 3: // 2個の場合は当日の指定時刻1～指定時刻2
-            return [
-                texts[0],
-                Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
-                Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[2]) + "+0900") / 1000];
+        case 2: // 2個の場合は当日の指定時刻1～指定時刻2
+            return {
+                channelId,
+                oldest: Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[0]) + "+0900") / 1000,
+                latest: Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
+                rate,
+            };
 
-        case 4: // 3個の場合は指定日の指定時刻1～指定時刻2
-            return [
-                texts[0],
-                Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[2]) + "+0900") / 1000,
-                Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[3]) + "+0900") / 1000];
+        case 3: // 3個の場合は指定日の指定時刻1～指定時刻2
+            return {
+                channelId,
+                oldest: Date.parse(parseDay(now, texts[0]) + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
+                latest: Date.parse(parseDay(now, texts[0]) + "T" + parseHour(now, texts[2]) + "+0900") / 1000,
+                rate,
+            };
 
-        case 5: // 4個の場合は指定日1の指定時刻1～指定日2の指定時刻2
-            return [
-                texts[0],
-                Date.parse(parseDay(now, texts[1]) + "T" + parseHour(now, texts[2]) + "+0900") / 1000,
-                Date.parse(parseDay(now, texts[3]) + "T" + parseHour(now, texts[4]) + "+0900") / 1000];
+        case 4: // 4個の場合は指定日1の指定時刻1～指定日2の指定時刻2
+            return {
+                channelId,
+                oldest: Date.parse(parseDay(now, texts[0]) + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
+                latest: Date.parse(parseDay(now, texts[2]) + "T" + parseHour(now, texts[3]) + "+0900") / 1000,
+                rate,
+            };
+
+        default:
+            return undefined;
     }
 }
 
-// console.log(parse("10"));
-// console.log(parse("10:30"));
-// console.log(parse("1:10"));
-// console.log(parse("24 01:10"));
-// console.log(parse("4 01:10"));
-// console.log(parse("3/4 01:10"));
-// console.log(parse("12/4 01:10"));
-// console.log(parse("2020/3/4 01:10"));
-// console.log(parse("1999/4/30 01:10"));
-
-// Date.parse("");
-// 20220419T140001+0900
-// console.log(Date.parse("2022-05-05T10:00:00+09:00"));
-// console.log((new Date(1651649258.866469 * 1000).toLocaleString("ja-JP")));
-// console.log(Date.now());
+// console.log(parseCommand("100 5 3.5x"));
+// console.log(parseCommand("100 1999/4/30 01:10 10x"));
