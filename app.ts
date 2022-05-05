@@ -76,7 +76,7 @@ function saigen(diffTs: number, channelId: string, rate: number, messages: Messa
 
         saigen(diffTs, channelId, rate, remainingMessages);
     },
-        Math.max(0, toJsTs(msg) + diffTs - Date.now() / rate),
+        Math.max(0, (toJsTs(msg) + diffTs - Date.now()) / rate),
         diffTs, channelId, msg, messages);
 };
 
