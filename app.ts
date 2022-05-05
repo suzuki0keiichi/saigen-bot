@@ -40,7 +40,7 @@ async function start() {
                 inclusive: true,
             }).then((res) => {
                 if (res.messages) {
-                    saigen(Date.now() - toJsTs(res.messages[0]), channelId, res.messages);
+                    saigen(Date.now() - toJsTs(res.messages[0]), context.command.channel_id, res.messages);
                 }
             }).catch((error) => {
                 console.log("error");
