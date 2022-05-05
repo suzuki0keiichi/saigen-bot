@@ -88,7 +88,7 @@ function saigen(context: SaigenContext, messages: Message[]) {
 
         saigen(context, remainingMessages);
     },
-        Math.max(0, context.requestTs + diffTs),
+        Math.max(0, context.requestTs + diffTs - Date.now()),
         context, msg, messages);
 };
 
