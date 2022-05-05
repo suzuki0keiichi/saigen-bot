@@ -54,6 +54,9 @@ function toJsTs(message: Message): number {
     return Number(message.ts) * 1000;
 }
 
+/***
+ * @param diffTs 最初の発言と現在のタイムスタンプの差 ミリ秒
+ */
 function saigen(diffTs: number, channelId: string, messages: Message[]) {
     let msg = messages.shift();
     if (msg == undefined) {
@@ -71,6 +74,8 @@ function saigen(diffTs: number, channelId: string, messages: Message[]) {
     },
         Math.max(0, toJsTs(msg) + diffTs - Date.now()),
         diffTs, channelId, msg, messages);
+
+    console.log("sleep " + Math.max(0, toJsTs(msg) + diffTs - Date.now()) + "ms");
 };
 
 start();
