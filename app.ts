@@ -40,7 +40,7 @@ async function start() {
                 inclusive: true,
             }).then((res) => {
                 if (res.messages) {
-                    saigen(Date.now() - toJsTs(res.messages[0]), context.command.channel_id, res.messages);
+                    saigen(Date.now() - toJsTs(res.messages[res.messages.length - 1]), context.command.channel_id, res.messages);
                 }
             }).catch((error) => {
                 console.log("error");
@@ -58,7 +58,7 @@ function toJsTs(message: Message): number {
  * @param diffTs 最初の発言と現在のタイムスタンプの差 ミリ秒
  */
 function saigen(diffTs: number, channelId: string, messages: Message[]) {
-    let msg = messages.shift();
+    let msg = messages.pop();
     if (msg == undefined) {
         return;
     }
@@ -74,8 +74,6 @@ function saigen(diffTs: number, channelId: string, messages: Message[]) {
     },
         Math.max(0, toJsTs(msg) + diffTs - Date.now()),
         diffTs, channelId, msg, messages);
-
-    console.log("sleep " + (toJsTs(msg) + diffTs - Date.now()) + "ms");
 };
 
 start();
