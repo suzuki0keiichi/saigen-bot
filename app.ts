@@ -75,7 +75,7 @@ function saigen(diffTs: number, channelId: string, messages: Message[]) {
         Math.max(0, toJsTs(msg) + diffTs - Date.now()),
         diffTs, channelId, msg, messages);
 
-    console.log("sleep " + Math.max(0, toJsTs(msg) + diffTs - Date.now()) + "ms");
+    console.log("sleep " + (toJsTs(msg) + diffTs - Date.now()) + "ms");
 };
 
 start();
