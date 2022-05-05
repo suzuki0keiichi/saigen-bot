@@ -1,4 +1,5 @@
 import { App } from "@slack/bolt";
+import { Message } from "@slack/web-api/dist/response/ConversationsHistoryResponse";
 import { config } from "dotenv";
 import { parseCommand } from "./parse";
 
@@ -30,21 +31,16 @@ async function start() {
 
         let range = parseCommand(context.command.text);
         if (range) {
+            let channelId = range[0];
+
             app.client.conversations.history({
-                channel: range[0],
+                channel: channelId,
                 oldest: range[1].toString(),
                 latest: range[2].toString(),
                 inclusive: true,
             }).then((res) => {
                 if (res.messages) {
-                    for (let i = 0; i < res.messages.length; i++) {
-                        if (res.messages[i].ts) {
-                            console.log(
-                                res.messages[i].user + " : " +
-                                (new Date(Number(res.messages[i].ts) * 1000)).toLocaleString("ja-JP") + " " +
-                                res.messages[i].text);
-                        }
-                    }
+                    saigen(Date.now() - toJsTs(res.messages[0]), channelId, res.messages);
                 }
             }).catch((error) => {
                 console.log("error");
@@ -52,6 +48,29 @@ async function start() {
             });
         }
     });
+};
+
+function toJsTs(message: Message): number {
+    return Number(message.ts) * 1000;
+}
+
+function saigen(diffTs: number, channelId: string, messages: Message[]) {
+    let msg = messages.shift();
+    if (msg == undefined) {
+        return;
+    }
+
+    setTimeout((diffTs: number, channelId: string, message: Message, remainingMessages: Message[]) => {
+        app.client.chat.postMessage({
+            channel: channelId,
+            text: message.text,
+            username: message.user
+        });
+
+        saigen(diffTs, channelId, remainingMessages);
+    },
+        Math.max(0, toJsTs(msg) + diffTs - Date.now()),
+        diffTs, channelId, msg, messages);
 };
 
 start();
