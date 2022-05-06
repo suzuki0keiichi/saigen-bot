@@ -64,7 +64,7 @@ function toJsTs(message: Message): number {
 
 interface User {
     name: string,
-    iconUrl: string,
+    iconUrl?: string,
 }
 
 interface SaigenContext {
@@ -78,7 +78,7 @@ interface SaigenContext {
 
 function saigen(context: SaigenContext, messages: Message[], count: number) {
     let msg = messages.pop();
-    if (msg == undefined || msg.user == undefined) {
+    if (!msg) {
         return;
     }
 
@@ -118,7 +118,7 @@ function saigen(context: SaigenContext, messages: Message[], count: number) {
             context, msg, messages);
     };
 
-    if (context.usersCache.has(msg.user)) {
+    if (!msg.user || context.usersCache.has(msg.user)) {
         call();
     } else {
         let userId = msg.user;

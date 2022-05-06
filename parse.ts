@@ -76,7 +76,7 @@ export function parseCommand(text: string): SaigenCommand | undefined {
     let rate: number = 1.0;
     let interval: number | undefined = undefined;
 
-    if (channelId == undefined) {
+    if (!channelId) {
         return;
     }
 
