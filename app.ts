@@ -32,6 +32,7 @@ async function start() {
         let command = parseCommand(context.command.text);
         if (command) {
             let rate = command.rate;
+            let interval = command.interval;
 
             app.client.conversations.history({
                 channel: command.channelId,
@@ -39,14 +40,15 @@ async function start() {
                 latest: command.latest.toString(),
                 inclusive: true,
             }).then((res) => {
-                if (res.messages) {
+                if (res.messages && res.messages.length > 0) {
                     let firstTs = toJsTs(res.messages[res.messages.length - 1]);
                     saigen({
                         requestTs: Date.now(),
                         channelId: context.command.channel_id,
                         rate,
                         firstTs,
-                    }, res.messages);
+                        interval,
+                    }, res.messages, 0);
                 }
             }).catch((error) => {
                 console.log("error");
@@ -68,10 +70,7 @@ interface SaigenContext {
     interval?: number, // 何秒間隔で発言させるか(倍速設定や過去の発言タイミングは無視される)
 }
 
-/***
- * @param diffTs 最初の発言と現在のタイムスタンプの差 ミリ秒
- */
-function saigen(context: SaigenContext, messages: Message[]) {
+function saigen(context: SaigenContext, messages: Message[], count: number) {
     let msg = messages.pop();
     if (msg == undefined) {
         return;
@@ -79,11 +78,12 @@ function saigen(context: SaigenContext, messages: Message[]) {
 
     let messageTs = toJsTs(msg);
     let diffTs = Math.max(0, (messageTs - context.firstTs) / context.rate);
-    let delay: number = Math.max(0, context.requestTs + diffTs - Date.now());
 
     if (context.interval) {
-        delay = context.interval * 1000;
+        diffTs = context.interval * 1000 * count;
     }
+
+    let delay: number = Math.max(0, context.requestTs + diffTs - Date.now());
 
     setTimeout((context: SaigenContext, message: Message, remainingMessages: Message[]) => {
         app.client.chat.postMessage({
@@ -92,7 +92,7 @@ function saigen(context: SaigenContext, messages: Message[]) {
             username: message.user
         });
 
-        saigen(context, remainingMessages);
+        saigen(context, remainingMessages, count + 1);
     },
         delay,
         context, msg, messages);
