@@ -48,11 +48,11 @@ async function start() {
                         rate,
                         firstTs,
                         interval,
+                        usersCache: new Map<string, User>(),
                     }, res.messages, 0);
                 }
             }).catch((error) => {
-                console.log("error");
-                console.log(error);
+                console.error(error);
             });
         }
     });
@@ -62,40 +62,80 @@ function toJsTs(message: Message): number {
     return Number(message.ts) * 1000;
 }
 
+interface User {
+    name: string,
+    iconUrl: string,
+}
+
 interface SaigenContext {
     firstTs: number,
     requestTs: number,
     channelId: string,
     rate: number, // 何倍速で再現するか
     interval?: number, // 何秒間隔で発言させるか(倍速設定や過去の発言タイミングは無視される)
+    usersCache: Map<string, User>,
 }
 
 function saigen(context: SaigenContext, messages: Message[], count: number) {
     let msg = messages.pop();
-    if (msg == undefined) {
+    if (msg == undefined || msg.user == undefined) {
         return;
     }
 
     let messageTs = toJsTs(msg);
-    let diffTs = Math.max(0, (messageTs - context.firstTs) / context.rate);
 
-    if (context.interval) {
-        diffTs = context.interval * 1000 * count;
-    }
+    let call = () => {
+        let diffTs = Math.max(0, (messageTs - context.firstTs) / context.rate);
 
-    let delay: number = Math.max(0, context.requestTs + diffTs - Date.now());
+        if (context.interval) {
+            diffTs = context.interval * 1000 * count;
+        }
 
-    setTimeout((context: SaigenContext, message: Message, remainingMessages: Message[]) => {
-        app.client.chat.postMessage({
-            channel: context.channelId,
-            text: message.text,
-            username: message.user
+        let delay: number = Math.max(0, context.requestTs + diffTs - Date.now());
+
+        setTimeout((context: SaigenContext, message: Message, remainingMessages: Message[]) => {
+            let username: string | undefined = message.user;
+            let icon_url: string | undefined = undefined;
+
+            if (message.user) {
+                let user = context.usersCache.get(message.user);
+                if (user) {
+                    username = user?.name;
+                    icon_url = user?.iconUrl;
+                }
+            }
+
+            app.client.chat.postMessage({
+                channel: context.channelId,
+                text: message.text,
+                username: username,
+                icon_url: icon_url,
+            });
+
+            saigen(context, remainingMessages, count + 1);
+        },
+            delay,
+            context, msg, messages);
+    };
+
+    if (context.usersCache.has(msg.user)) {
+        call();
+    } else {
+        let userId = msg.user;
+
+        app.client.users.info({
+            user: userId,
+        }).then((res) => {
+            if (res.user && res.user.name && res.user.profile && res.user.profile.image_48) {
+                context.usersCache.set(userId,
+                    { name: res.user.name, iconUrl: res.user.profile.image_48 });
+            }
+        }).catch((error) => {
+            console.error(error);
+        }).finally(() => {
+            call();
         });
-
-        saigen(context, remainingMessages, count + 1);
-    },
-        delay,
-        context, msg, messages);
+    }
 };
 
 start();
