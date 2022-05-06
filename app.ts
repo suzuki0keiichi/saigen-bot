@@ -64,7 +64,8 @@ interface SaigenContext {
     firstTs: number,
     requestTs: number,
     channelId: string,
-    rate: number,
+    rate: number, // 何倍速で再現するか
+    interval?: number, // 何秒間隔で発言させるか(倍速設定や過去の発言タイミングは無視される)
 }
 
 /***
@@ -78,6 +79,11 @@ function saigen(context: SaigenContext, messages: Message[]) {
 
     let messageTs = toJsTs(msg);
     let diffTs = Math.max(0, (messageTs - context.firstTs) / context.rate);
+    let delay: number = Math.max(0, context.requestTs + diffTs - Date.now());
+
+    if (context.interval) {
+        delay = context.interval * 1000;
+    }
 
     setTimeout((context: SaigenContext, message: Message, remainingMessages: Message[]) => {
         app.client.chat.postMessage({
@@ -88,7 +94,7 @@ function saigen(context: SaigenContext, messages: Message[]) {
 
         saigen(context, remainingMessages);
     },
-        Math.max(0, context.requestTs + diffTs - Date.now()),
+        delay,
         context, msg, messages);
 };
 

@@ -3,6 +3,7 @@ interface SaigenCommand {
     oldest: number,
     latest: number,
     rate: number,
+    interval?: number,
 }
 
 /**
@@ -73,13 +74,18 @@ export function parseCommand(text: string): SaigenCommand | undefined {
     let now = new Date();
     let channelId = texts.shift();
     let rate: number = 1.0;
+    let interval: number | undefined = undefined;
 
     if (channelId == undefined) {
         return;
     }
 
     if (texts.length > 0 && texts[texts.length - 1].match(/\d+\.?\d*x$/)) {
-        rate = Number(texts.pop()?.slice(0, -1));
+        rate = Math.max(0.1, Number(texts.pop()?.slice(0, -1)));
+    }
+
+    if (texts.length > 0 && texts[texts.length - 1].match(/\d+\.?\d*s$/)) {
+        interval = Math.max(0.5, Number(texts.pop()?.slice(0, -1)));
     }
 
     switch (texts.length) {
@@ -89,6 +95,7 @@ export function parseCommand(text: string): SaigenCommand | undefined {
                 oldest: Date.parse("" + parseDay(now, "") + "T" + parseHour(now, texts[0]) + "+0900") / 1000,
                 latest: Date.now() / 1000,
                 rate,
+                interval,
             };
 
         case 2: // 2個の場合は当日の指定時刻1～指定時刻2
@@ -97,6 +104,7 @@ export function parseCommand(text: string): SaigenCommand | undefined {
                 oldest: Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[0]) + "+0900") / 1000,
                 latest: Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
                 rate,
+                interval,
             };
 
         case 3: // 3個の場合は指定日の指定時刻1～指定時刻2
@@ -105,6 +113,7 @@ export function parseCommand(text: string): SaigenCommand | undefined {
                 oldest: Date.parse(parseDay(now, texts[0]) + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
                 latest: Date.parse(parseDay(now, texts[0]) + "T" + parseHour(now, texts[2]) + "+0900") / 1000,
                 rate,
+                interval,
             };
 
         case 4: // 4個の場合は指定日1の指定時刻1～指定日2の指定時刻2
@@ -113,6 +122,7 @@ export function parseCommand(text: string): SaigenCommand | undefined {
                 oldest: Date.parse(parseDay(now, texts[0]) + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
                 latest: Date.parse(parseDay(now, texts[2]) + "T" + parseHour(now, texts[3]) + "+0900") / 1000,
                 rate,
+                interval,
             };
 
         default:
