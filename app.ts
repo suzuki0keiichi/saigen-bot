@@ -19,12 +19,25 @@ async function start() {
     app.event("app_mention", async (context) => {
         console.log("mention");
         console.log(context.event);
+
+        let regex = /^(<@[\u\d]+>)(.*)$/;
+        let match = regex.exec(context.message);
+        if (!match) {
+            return;
+        }
+
+        let command = parseCommand(match[2]);
+        if (!command) {
+            return;
+        }
+
+        execute(command);
     });
 
-    app.message(async (context) => {
-        console.log("any message");
-        console.log(context);
-    });
+    // app.message(async (context) => {
+    //     console.log("any message");
+    //     console.log(context);
+    // });
 
     app.command("/saigen", async (context) => {
         console.log(context.command);
