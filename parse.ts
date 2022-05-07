@@ -1,4 +1,4 @@
-interface SaigenCommand {
+export interface SaigenCommand {
     channelId: string,
     oldest: number,
     latest: number,
