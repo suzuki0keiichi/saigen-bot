@@ -20,8 +20,8 @@ async function start() {
         console.log("mention");
         console.log(context.event);
 
-        let regex = /^(<@[\u\d]+>)(.*)$/;
-        let match = regex.exec(context.message);
+        let regex = /^(<@[a-zA-Z0-9]+>)\s*(.*)$/;
+        let match = regex.exec(context.event.text);
         if (!match) {
             return;
         }
