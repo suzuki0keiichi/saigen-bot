@@ -8,7 +8,7 @@ export function execute(command: SaigenCommand) {
     let interval = command.interval;
 
     app.client.conversations.history({
-        channel: command.toChannelId,
+        channel: command.fromChannelId,
         oldest: command.oldest.toString(),
         latest: command.latest.toString(),
         inclusive: true,
