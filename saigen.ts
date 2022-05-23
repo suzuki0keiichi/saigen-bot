@@ -99,9 +99,9 @@ export function saigen(context: SaigenContext, messages: Message[], count: numbe
         app.client.users.info({
             user: userId,
         }).then((res) => {
-            if (res.user && res.user.name && res.user.profile && res.user.profile.image_48) {
+            if (res.user && res.user.profile && res.user.profile.display_name && res.user.profile && res.user.profile.image_48) {
                 context.usersCache.set(userId,
-                    { name: res.user.name, iconUrl: res.user.profile.image_48 });
+                    { name: res.user.profile.display_name, iconUrl: res.user.profile.image_48 });
             }
         }).catch((error) => {
             console.error(error);
