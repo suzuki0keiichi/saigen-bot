@@ -1,5 +1,6 @@
 export interface SaigenCommand {
-    channelId: string,
+    toChannelId: string,
+    fromChannelId: string,
     oldest: number,
     latest: number,
     rate: number,
@@ -68,7 +69,7 @@ export function parseDay(now: Date, text: string): string | undefined {
     }
 }
 
-export function parseCommand(text: string): SaigenCommand | undefined {
+export function parseCommand(toChannelId: string, text: string): SaigenCommand | undefined {
     let texts = text.split(/ +/);
 
     let now = new Date();
@@ -91,7 +92,8 @@ export function parseCommand(text: string): SaigenCommand | undefined {
     switch (texts.length) {
         case 1: // 1個しかない場合は指定時刻～現在
             return {
-                channelId,
+                toChannelId,
+                fromChannelId: channelId,
                 oldest: Date.parse("" + parseDay(now, "") + "T" + parseHour(now, texts[0]) + "+0900") / 1000,
                 latest: Date.now() / 1000,
                 rate,
@@ -100,7 +102,8 @@ export function parseCommand(text: string): SaigenCommand | undefined {
 
         case 2: // 2個の場合は当日の指定時刻1～指定時刻2
             return {
-                channelId,
+                toChannelId,
+                fromChannelId: channelId,
                 oldest: Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[0]) + "+0900") / 1000,
                 latest: Date.parse(parseDay(now, "") + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
                 rate,
@@ -109,7 +112,8 @@ export function parseCommand(text: string): SaigenCommand | undefined {
 
         case 3: // 3個の場合は指定日の指定時刻1～指定時刻2
             return {
-                channelId,
+                toChannelId,
+                fromChannelId: channelId,
                 oldest: Date.parse(parseDay(now, texts[0]) + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
                 latest: Date.parse(parseDay(now, texts[0]) + "T" + parseHour(now, texts[2]) + "+0900") / 1000,
                 rate,
@@ -118,7 +122,8 @@ export function parseCommand(text: string): SaigenCommand | undefined {
 
         case 4: // 4個の場合は指定日1の指定時刻1～指定日2の指定時刻2
             return {
-                channelId,
+                toChannelId,
+                fromChannelId: channelId,
                 oldest: Date.parse(parseDay(now, texts[0]) + "T" + parseHour(now, texts[1]) + "+0900") / 1000,
                 latest: Date.parse(parseDay(now, texts[2]) + "T" + parseHour(now, texts[3]) + "+0900") / 1000,
                 rate,

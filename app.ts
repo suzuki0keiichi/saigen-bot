@@ -26,7 +26,7 @@ async function start() {
             return;
         }
 
-        let command = parseCommand(match[2]);
+        let command = parseCommand(context.event.channel, match[2]);
         if (!command) {
             return;
         }
@@ -44,7 +44,7 @@ async function start() {
 
         await context.ack();
 
-        let command = parseCommand(context.command.text);
+        let command = parseCommand(context.command.channel_id, context.command.text);
         if (!command) {
             return;
         }

@@ -8,7 +8,7 @@ export function execute(command: SaigenCommand) {
     let interval = command.interval;
 
     app.client.conversations.history({
-        channel: command.channelId,
+        channel: command.toChannelId,
         oldest: command.oldest.toString(),
         latest: command.latest.toString(),
         inclusive: true,
@@ -17,7 +17,8 @@ export function execute(command: SaigenCommand) {
             let firstTs = toJsTs(res.messages[res.messages.length - 1]);
             saigen({
                 requestTs: Date.now(),
-                channelId: command.channelId,
+                fromChannelId: command.fromChannelId,
+                toChannelId: command.toChannelId,
                 rate,
                 firstTs,
                 interval,
@@ -41,7 +42,8 @@ export interface User {
 interface SaigenContext {
     firstTs: number;
     requestTs: number;
-    channelId: string;
+    toChannelId: string,
+    fromChannelId: string,
     rate: number; // 何倍速で再現するか
     interval?: number; // 何秒間隔で発言させるか(倍速設定や過去の発言タイミングは無視される)
     usersCache: Map<string, User>;
@@ -77,7 +79,7 @@ export function saigen(context: SaigenContext, messages: Message[], count: numbe
             }
 
             app.client.chat.postMessage({
-                channel: context.channelId,
+                channel: context.toChannelId,
                 text: message.text,
                 username: username,
                 icon_url: icon_url,
